@@ -1,100 +1,130 @@
 #pragma once
 #include <raylib.h>
+#include <raymath.h>
 #include <string>
 #include <vector>
-#include <ctime>
-#include <unordered_map>
+#include <map>
 #include <unordered_set>
 using namespace std;
 
 
-
-enum Continent {
-	Africa, Asia, Europe, NorthAmerica, SouthAmerica, Oceania
-};
-
-
-struct Territory;
-struct Player;
-struct Game;
-
 enum GamePhase {
-	placement, attack, move
+	Menu,PreGame,UseCard,GetTroops,PlaceTroops,AttackChooseTer,AttackChooseTar,AttackChoosetype,FortifyChooseTer,FortifyChooseCount,FortifyChooseTar,ChangePlayer
 };
+class Game;
+struct Territory;
+struct Card;
+struct Button;
 
-struct Phase {
-	Player* player;
-	string gamePhase;
-};
+class Game {
+public:
+	bool running;
+	bool waited3s;
+	bool conquered1;
+	bool cardsDrawn;
+	int usedCardsStars;
+	int currentPlayerTroops;
+	Color bgColor;
+	Color pColor[4];
+	bool isAlive[4];
+	int playerCount;
+	int territoryCount;
+	int currentPlayer;
+	bool isTerClicked;
+	string terClicked;
+	string attTer;
+	string attTar;
+	bool blitz;
+	int forCount;
+	int playerTerritoryCount;
+	GamePhase gamePhase;
+	map<string,Territory> territory;
+	vector<Vector4> dlines;
+	vector<Vector4> lines;
+	vector<string> names;
+	vector<Card> deck;
+	map<string, vector<string>> continents;
+	map<string, int> contExt;
+	vector<vector<Card>> inventory;
+	map<string,Button> buttons;
+	unordered_set<string> visited;
+	map<string, int> cardStars;
 
-enum ButtonState {
-	off, on, hover, pressed
-};
-
-struct Card {
-	Territory* territory;
-	int stars;
-};
-
-struct Player {
-	string name;
-	vector<Territory*> ownedTerritories;
-	vector<Card*> cards;
-	Color color;
-	int troops;
-	int num;
-	void addTroops(Game *risk);
-	void removeTroops(int amount);
-	void placeTroops(Territory& t, int amount);
-	void moveTroops(Territory& t1, Territory& t2, int amount);
-	bool hasPath(Territory* start, Territory* end, unordered_set<Territory*>& visited);
+	
+	Game();
+	void draw();
+	void drawMap();
+	void drawTerritories();
+	void drawLines();
+	void drawSL();
+	void drawTroops();
+	void drawName();
+	void drawContExts();
+	void drawCurrentPlayer();
+	void drawCards();
+	void drawTroopsToPlace();
+	void drawAttacker();
+	void drawDefender();
+	void drawMenu();
+	void drawPreGame();
+	void drawUseCard();
+	void drawPlaceTroops();
+	void drawAttackChooseTer();
+	void drawAttackChooseTar();
+	void drawFortifyChooseTer();
+	void drawFortifyChooseTar();
+	void drawFortifyChooseCount();
+	void attack();
+	void attackRound();
+	int nextPlayer();
+	void update();
+	void drawDashedLine(float x, float y, float z, float w, float thickness, float dashLength, Color color);
+	void drawButton(string btext);
+	bool checkButton(string btext);
+	void shuffleNames();
+	void shuffleDeck();
+	void giveTerritories();
+	void giveTroops();
+	void checkTerClicked();
+	void giveCardTroops();
+	bool terClickedHasBorder();
+	bool isNeighbor();
+	void getCard();
+	bool hasPath(string start, string end);
+	bool hasAnyPath(string start);
+	void updateMenu();
+	void updatePreGame();
+	void updateUseCard();
+	void updatePlaceTroops();
+	void updateAttackChooseTer();
+	void updateAttackChooseTar();
+	void updateFortifyChooseTer();
+	void updateFortifyChooseTar();
+	void updateFortifyChooseCount();
 };
 
 struct Territory {
 	string name;
-	vector<Territory*> neighbors;
-	Continent continent;
-	Player* owner;
+	vector<string> neighbors;
 	int troops;
-	void addTroops(int amount);
-	void removeTroops(int amount);
-	void attack(Territory& t, int amount);
-	bool checkNeighbor(Territory& t);
+	float x, y, w, h;
+	int owner;
+	Territory() = default;
+	Territory(string n, vector<string> nb, float xf, float yf, float wf, float hf);
 };
 
-struct Line {
-	Vector2 start;
-	Vector2 end;
+struct Card {
+	string cardName;
+	int cardStars;
 };
 
 struct Button {
-	string text;
-	float x;
-	float y;
-	float width;
-	float height;
-	ButtonState state ;
-};
-
-struct Game {
-	void init();
-	void nextPlayer();
-	Color backgroundColor = { 107, 95, 51, 255 };
-	Color lineColor = { 0,0,0,255 };
-	Color p1color = { 255, 0, 0, 255 };
-	Color p2color = { 0, 0, 255, 255 };
-	Color p3color = { 0, 255, 0, 255 };
-
-
-	unordered_map<int, Player> players = {
-		{1,{"player1", {}, {}, p1color, 0,1}},
-		{2,{"player2", {}, {}, p2color, 0,2}},
-		{3,{"player3", {}, {}, p3color, 0,3}},
-	};
-	unordered_map<string, Territory> territories;
-	vector<Card> deck;
-	unordered_map<string, Rectangle> territoryRects;
-	unordered_map<Continent, int> continentTroops;
-	
-	Phase phase = {&players[1], "placement"};
+	string buttonText;
+	Rectangle buttonRec;
+	Vector2 textPos;
+	int fontSize;
+	Color color;
+	Color textColor;
+	Button() = default;
+	Button(string n, Rectangle r, int s, Color bg, Color t);
 };
