@@ -316,18 +316,7 @@ Game::Game() {
 	visited = {};
 }
 
-int Game::nextPlayer() {
-	if (conquered1) {
-		getCard();
-		conquered1 = false;
-	}
-	usedCardsStars = 0;
-	currentPlayer++;
-	if (currentPlayer > playerCount)
-		currentPlayer = 1;
-	gamePhase = UseCard;
-	return currentPlayer;
-}
+
 
 void Game::draw() {
 	switch (gamePhase) {
@@ -391,7 +380,7 @@ void Game::drawFortifyChooseCount() {
 	drawButton("Fortify+");
 	drawButton("Fortify-");
 	drawButton("ForCount cancel fortify");
-	DrawRectangle(40, 800, 200, 50, YELLOW); char str4[10];
+	DrawRectangle(40, 800, 200, 50, YELLOW);
 	DrawText(to_string(forCount).c_str(), 130, 810, 30, BLACK);
 }
 
@@ -412,7 +401,7 @@ void Game::drawMap() {
 }
 
 void Game::drawTerritories() {
-	for (auto [n, t] : territory) {
+	for (auto& [n, t] : territory) {
 		DrawRectangle(t.x, t.y, t.w, t.h, pColor[t.owner]);
 		DrawRectangleLinesEx({ t.x - 1, t.y - 1, t.w + 2, t.h + 2 }, 2, BLACK);
 	}
@@ -433,13 +422,18 @@ void Game::drawSL() {
 }
 
 void Game::drawTroops() {
-	for (auto [n, t] : territory) {
+	for (auto& [n, t] : territory) {
 		DrawText(to_string(t.troops).c_str(), t.x + 4, t.y + 4, 20, BLACK);
 	}
 }
 
 void Game::drawName() {
-	for (auto [n, t] : territory) {
+	for (auto& [n, t] : territory) {
+		if (n == "Eastern Australia")
+		{
+			DrawText(t.name.c_str(), t.x + 4, t.y + 35, 10, BLACK);
+			continue;
+		}
 		DrawText(t.name.c_str(), t.x + 4, t.y + 25, 10, BLACK);
 	}
 }
@@ -464,12 +458,12 @@ void Game::drawButton(string btext) {
 	Button button = buttons[btext];
 	DrawRectangleRec(button.buttonRec, button.color);
 	DrawRectangleLinesEx(button.buttonRec, 6, BLACK);
-	DrawText(button.buttonText.c_str(), button.textPos.x - MeasureText(button.buttonText.c_str(), button.fontSize)/2, button.textPos.y - button.fontSize/2, button.fontSize, button.textColor);
+	DrawText(button.buttonText.c_str(), static_cast<int>(button.textPos.x) - MeasureText(button.buttonText.c_str(), button.fontSize) / 2, static_cast<int>(button.textPos.y) - button.fontSize / 2, button.fontSize, button.textColor);
 }
 
 void Game::drawContExts() {
 	int i = 80;
-	for (auto [n, w] : contExt) {
+	for (auto &[n, w] : contExt) {
 		string str = n + ": " + to_string(w);
 		DrawText(str.c_str(), 1020, i, 20, BLACK);
 		i += 40;
@@ -572,7 +566,7 @@ void Game::updateUseCard() {
 	}
 	for (int i = 1; i < playerCount; i++) {
 		playerTerritoryCount = 0;
-		for (auto [n, t] : territory)
+		for (auto &[n, t] : territory)
 			if (t.owner == i)
 				playerTerritoryCount++;
 		if (playerTerritoryCount == 0)
@@ -596,7 +590,7 @@ void Game::updateUseCard() {
 		return;
 	}
 	int i = 0;
-	for (auto card : inventory[currentPlayer]) {
+	for (auto &card : inventory[currentPlayer]) {
 		if (checkButton(card.cardName)) {
 			usedCardsStars += card.cardStars;
 			deck.push_back( inventory[currentPlayer][i]);
@@ -628,6 +622,10 @@ void Game::updateAttackChooseTer() {
 		gamePhase = AttackChooseTar;
 	}
 	if (checkButton("AttTer end phase")) {
+		if (conquered1) {
+			getCard();
+			conquered1 = false;
+		}
 		gamePhase = FortifyChooseTer;
 	}
 }
@@ -703,6 +701,16 @@ void Game::updateFortifyChooseTar() {
 	}
 }
 
+int Game::nextPlayer() {
+	
+	usedCardsStars = 0;
+	currentPlayer++;
+	if (currentPlayer > playerCount)
+		currentPlayer = 1;
+	gamePhase = UseCard;
+	return currentPlayer;
+}
+
 bool Game::checkButton(string btext) {
 	Button button = buttons[btext];
 	return (CheckCollisionPointRec(GetMousePosition(), button.buttonRec) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT));
@@ -728,7 +736,7 @@ void Game::giveTerritories() {
 
 void Game::giveTroops() {
 	int pTerCount = 0;
-	for (auto [n, t] : territory) 
+	for (auto &[n, t] : territory) 
 		if (t.owner == currentPlayer)
 			pTerCount++;
 	currentPlayerTroops += pTerCount / 3;
@@ -736,7 +744,7 @@ void Game::giveTroops() {
 }
 
 void Game::checkTerClicked() {
-	for (auto [n, t] : territory) {
+	for (auto &[n, t] : territory) {
 		if (CheckCollisionPointRec(GetMousePosition(), { t.x, t.y, t.w, t.h }) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
 			terClicked = n;
 			isTerClicked = true;
